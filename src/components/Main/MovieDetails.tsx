@@ -35,6 +35,11 @@ export default function MovieDetails({
   } = movie || {};
 
   useEffect(() => {
+    if (!title) return;
+    document.title = `${title} - FlickList`;
+  }, [title]);
+
+  useEffect(() => {
     (async function () {
       setLoading(true);
       try {

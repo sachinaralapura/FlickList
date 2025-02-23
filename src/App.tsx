@@ -16,7 +16,7 @@ import {
 import { localWatched } from "./Utils";
 import { MovieType } from "./types";
 
-const API_KEY = import.meta.env.VITE_API_KEY1;
+const API_KEY = import.meta.env.VITE_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
@@ -29,21 +29,28 @@ function App() {
 
   // Fetch movies based on the current movieName
   useEffect(() => {
+    const controller: AbortController = new AbortController();
+
     setLoading(true);
     (async function fetchMovies() {
       try {
-        const res = await fetch(`${API_URL}?apikey=${API_KEY}&s=${movieName}`);
+        const res = await fetch(`${API_URL}?apikey=${API_KEY}&s=${movieName}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error("Something went wrong");
 
         const data = await res.json();
         if (data.Response === "False") throw new Error("Movie not found");
         setMovies(data.Search);
       } catch (e: any) {
+        if (e.name === "AbortError") return;
         setError(e.message);
       } finally {
         setLoading(false);
       }
     })();
+
+    return () => controller.abort();
   }, [movieName]);
 
   // Save watched movies to local storage
